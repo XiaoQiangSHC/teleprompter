@@ -1,10 +1,10 @@
 {
   "files": {
-    "main.js": "/teleprompter/static/js/main.c71c5082.js",
+    "main.js": "/teleprompter/static/js/main.78bf3dac.js",
     "index.html": "/teleprompter/index.html",
-    "main.c71c5082.js.map": "/teleprompter/static/js/main.c71c5082.js.map"
+    "main.78bf3dac.js.map": "/teleprompter/static/js/main.78bf3dac.js.map"
   },
   "entrypoints": [
-    "static/js/main.c71c5082.js"
+    "static/js/main.78bf3dac.js"
   ]
 }
