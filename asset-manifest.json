@@ -1,0 +1,10 @@
+{
+  "files": {
+    "main.js": "/teleprompter/static/js/main.afdb432f.js",
+    "index.html": "/teleprompter/index.html",
+    "main.afdb432f.js.map": "/teleprompter/static/js/main.afdb432f.js.map"
+  },
+  "entrypoints": [
+    "static/js/main.afdb432f.js"
+  ]
+}
