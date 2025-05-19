@@ -31,6 +31,7 @@ export interface Settings {
   backgroundColor: string;
   promptFontSize: number;
   lineSpacing: number;
+  previewScale?: number;
 }
 
 export interface AppState {
@@ -43,4 +44,6 @@ export interface AppState {
   showKeyMap: boolean;
   settings: Settings;
   showPrompt: boolean;
+  currentKey: string | null;
+  previewScale?: number;
 } 

@@ -3,7 +3,7 @@ import { TextConfig, KeyMapping } from '../types/types';
 import { useScrollControl } from './useScrollControl';
 
 interface UseKeyboardControlProps {
-  onTextSelect: (text: TextConfig) => void;
+  onTextSelect: (key: string, text: TextConfig) => void;
   onExit: () => void;
   onToggleKeyMap: () => void;
   keyMappings: KeyMapping;
@@ -30,13 +30,15 @@ export const useKeyboardControl = ({
       } else if (key === 'Subtract') {
         startScroll('up');
       } else if (keyMappings[key]) {
-        onTextSelect(keyMappings[key]);
+        onTextSelect(key, keyMappings[key]);
       }
     }
 
     // Handle ESC key
-    if (event.code === 'Escape' && isFullscreen) {
-      onExit();
+    if (event.code === 'Escape') {
+      if (isFullscreen) {
+        onExit();
+      }
     }
 
     // Handle keymap toggle

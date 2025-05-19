@@ -38,7 +38,8 @@ const ModesContainer = styled.div`
   display: flex;
   gap: 1rem;
   margin-bottom: 2rem;
-  overflow-x: auto;
+  overflow-x: visible;
+  overflow-y: visible;
   padding-bottom: 1rem;
 
   &::-webkit-scrollbar {
@@ -68,7 +69,10 @@ const ModeCard = styled.div<{ isActive: boolean }>`
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  overflow: visible;
   
+  position: relative;
+
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -80,6 +84,10 @@ const ModeName = styled.h3`
   margin: 0;
   font-size: 1.2rem;
   color: #4a90e2;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `;
 
 const ActionButton = styled.button`
@@ -91,7 +99,6 @@ const ActionButton = styled.button`
   cursor: pointer;
   transition: all 0.2s;
   font-weight: 500;
-  margin-right: 1rem;
 
   &:hover {
     background: #357abd;
@@ -187,17 +194,19 @@ const MappingModeManager: React.FC<MappingModeManagerProps> = ({
             onClick={() => onModeSelect(mode.id)}
           >
             <ModeName>{mode.name}</ModeName>
-            {mode.id === currentModeId && (
-              <ActionButton
-                className="secondary"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDeleteMode(mode.id);
-                }}
-              >
-                删除
-              </ActionButton>
-            )}
+            <ActionButton
+              className="secondary"
+              style={{
+                visibility: mode.id === currentModeId ? 'visible' : 'hidden',
+                pointerEvents: mode.id === currentModeId ? 'auto' : 'none'
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteMode(mode.id);
+              }}
+            >
+              删除
+            </ActionButton>
           </ModeCard>
         ))}
       </ModesContainer>

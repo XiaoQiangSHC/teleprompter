@@ -20,7 +20,7 @@ export const useScrollControl = (stepSize: number) => {
 
     const direction = scrollState.current.direction;
     const container = scrollContainer.current;
-    const scrollAmount = stepSize * (direction === 'up' ? -1 : 1);
+    const scrollAmount = stepSize * (direction === 'down' ? 1 : -1);
     
     container.scrollTop += scrollAmount;
     

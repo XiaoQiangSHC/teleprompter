@@ -178,12 +178,14 @@ interface SettingsProps {
   defaultBackgroundColor: string;
   defaultPromptFontSize: number;
   defaultLineSpacing: number;
+  defaultPreviewScale?: number;
   onSettingsChange: (settings: {
     fontSize: number;
     textColor: string;
     backgroundColor: string;
     promptFontSize: number;
     lineSpacing: number;
+    previewScale?: number;
   }) => void;
 }
 
@@ -193,10 +195,11 @@ const Settings: React.FC<SettingsProps> = ({
   defaultBackgroundColor,
   defaultPromptFontSize = 16,
   defaultLineSpacing = 1.5,
+  defaultPreviewScale = 1,
   onSettingsChange
 }) => {
   const handleChange = (
-    key: 'fontSize' | 'textColor' | 'backgroundColor' | 'promptFontSize' | 'lineSpacing',
+    key: 'fontSize' | 'textColor' | 'backgroundColor' | 'promptFontSize' | 'lineSpacing' | 'previewScale',
     value: string | number
   ) => {
     onSettingsChange({
@@ -204,7 +207,8 @@ const Settings: React.FC<SettingsProps> = ({
       textColor: key === 'textColor' ? String(value) : defaultTextColor,
       backgroundColor: key === 'backgroundColor' ? String(value) : defaultBackgroundColor,
       promptFontSize: key === 'promptFontSize' ? Number(value) : defaultPromptFontSize,
-      lineSpacing: key === 'lineSpacing' ? Number(value) : defaultLineSpacing
+      lineSpacing: key === 'lineSpacing' ? Number(value) : defaultLineSpacing,
+      previewScale: key === 'previewScale' ? Number(value) : defaultPreviewScale
     });
   };
 
@@ -271,6 +275,21 @@ const Settings: React.FC<SettingsProps> = ({
               onChange={(e) => handleChange('lineSpacing', e.target.value)}
             />
             <ValueDisplay>{defaultLineSpacing}</ValueDisplay>
+          </InputContainer>
+        </SettingGroup>
+
+        <SettingGroup>
+          <SettingLabel>预览窗口缩放</SettingLabel>
+          <InputContainer>
+            <RangeInput
+              type="range"
+              min="0.5"
+              max="2"
+              step="0.1"
+              value={defaultPreviewScale}
+              onChange={(e) => handleChange('previewScale', Number(e.target.value))}
+            />
+            <ValueDisplay>{(defaultPreviewScale * 100).toFixed(0)}%</ValueDisplay>
           </InputContainer>
         </SettingGroup>
       </SettingsGrid>

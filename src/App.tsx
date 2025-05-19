@@ -13,9 +13,11 @@ import {
   Button,
   PromptText,
   Header,
-  MainContent
+  MainContent,
+  GlobalStyle
 } from './styles/StyledComponents';
 import { TextConfig, KeyMapping, ScrollConfig, AppState, MappingMode } from './types/types';
+import styled from 'styled-components';
 
 const defaultKeyMappings: KeyMapping = {
   '0': {
@@ -142,9 +144,23 @@ const getInitialState = (): AppState => {
       backgroundColor: '#000000',
       promptFontSize: 16,
       lineSpacing: 1.5
-    }
+    },
+    currentKey: null
   };
 };
+
+const KeyMapOverlayWrapper = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  pointer-events: none;
+`;
 
 const App: React.FC = () => {
   const [state, setState] = useState<AppState>(getInitialState());
@@ -163,19 +179,14 @@ const App: React.FC = () => {
   }, [state.mappingModes, state.currentModeId, state.settings]);
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (state.isFullscreen && state.currentText) {
+    if (!state.isFullscreen && state.currentKey) {
       setState(prev => ({ ...prev, showPrompt: true }));
-      timer = setTimeout(() => {
-        setState(prev => ({ ...prev, showPrompt: false }));
-      }, 3000);
+    } else {
+      setState(prev => ({ ...prev, showPrompt: false }));
     }
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
-  }, [state.isFullscreen, state.currentText]);
+  }, [state.isFullscreen, state.currentKey]);
 
-  const handleTextSelect = useCallback((text: TextConfig) => {
+  const handleTextSelect = useCallback((key: string, text: TextConfig) => {
     setState(prev => ({
       ...prev,
       isFullscreen: true,
@@ -187,7 +198,8 @@ const App: React.FC = () => {
         color: state.settings.textColor,
         lineSpacing: state.settings.lineSpacing,
         backgroundColor: state.settings.backgroundColor
-      }
+      },
+      currentKey: key
     }));
   }, [state.settings]);
 
@@ -195,7 +207,10 @@ const App: React.FC = () => {
     setState(prev => ({
       ...prev,
       isFullscreen: false,
-      currentText: null
+      currentText: null,
+      currentKey: null,
+      showPrompt: false,
+      showKeyMap: false
     }));
   }, []);
 
@@ -280,6 +295,7 @@ const App: React.FC = () => {
     backgroundColor: string;
     promptFontSize: number;
     lineSpacing: number;
+    previewScale?: number;
   }) => {
     setState(prev => {
       // 更新所有文案的行距设置
@@ -326,81 +342,135 @@ const App: React.FC = () => {
   const currentMode = getCurrentMode();
 
   return (
-    <AppContainer 
-      isWindowActive={isWindowActive}
-      style={{
-        backgroundColor: state.settings.backgroundColor
-      }}
-    >
-      {!state.isFullscreen && (
-        <Header>
-          <h1>智能提词器</h1>
-        </Header>
-      )}
-
-      <MainContent>
-        {!isWindowActive && (
-          <PromptText isWarning>
-            窗口未激活 - 请点击窗口以激活提词器
-          </PromptText>
-        )}
-
-        {state.isFullscreen && state.currentText && (
-          <TextDisplay config={state.currentText}>
-            <div 
-              className="text-content"
-              ref={setScrollContainer}
-              dangerouslySetInnerHTML={{ 
-                __html: formatContent(state.currentText.content)
-              }}
-            />
-            {state.showPrompt && (
-              <PromptText style={{ fontSize: state.settings.promptFontSize }}>
-                按 ESC 退出 | 小键盘 +/- 滚动 | Enter 显示映射
-              </PromptText>
-            )}
-          </TextDisplay>
-        )}
-
-        {state.showKeyMap && (
-          <KeyMapOverlay>
-            <h2>快捷键映射 - {currentMode.name}</h2>
-            {Object.entries(currentMode.keyMappings).map(([key, config]) => (
-              <KeyMapItem key={key}>
-                [小键盘 {key}] - {config.title}
-              </KeyMapItem>
-            ))}
-            <Button onClick={toggleKeyMap}>关闭</Button>
-          </KeyMapOverlay>
-        )}
-
+    <>
+      <GlobalStyle />
+      <AppContainer isWindowActive={isWindowActive}>
         {!state.isFullscreen && (
-          <>
-            <Settings
-              defaultFontSize={state.settings.fontSize}
-              defaultTextColor={state.settings.textColor}
-              defaultBackgroundColor={state.settings.backgroundColor}
-              defaultPromptFontSize={state.settings.promptFontSize}
-              defaultLineSpacing={state.settings.lineSpacing}
-              onSettingsChange={handleSettingsChange}
-            />
-            <MappingModeManager
-              modes={state.mappingModes}
-              currentModeId={state.currentModeId}
-              onModeSelect={handleModeSelect}
-              onModeAdd={handleModeAdd}
-              onModeUpdate={handleModeUpdate}
-              onModeDelete={handleModeDelete}
-              currentMappings={currentMode.keyMappings}
-            />
-            <QuickEdit
-              keyMappings={currentMode.keyMappings}
-              onUpdate={handleConfigUpdate}
-            />
-          </>
+          <Header>
+            <h1>智能提词器</h1>
+          </Header>
         )}
-      </MainContent>
-    </AppContainer>
+
+        <MainContent>
+          {state.isFullscreen && state.currentText && (
+            <TextDisplay 
+              config={{
+                ...state.currentText,
+                fontSize: state.settings.fontSize
+              }}
+            >
+              <div 
+                className="text-content"
+                ref={setScrollContainer}
+                dangerouslySetInnerHTML={{ 
+                  __html: formatContent(state.currentText.content)
+                }}
+              />
+            </TextDisplay>
+          )}
+
+          {!isWindowActive && (
+            <PromptText isWarning>
+              窗口未激活 - 请点击窗口以激活提词器
+            </PromptText>
+          )}
+
+          {state.showKeyMap && (
+            <KeyMapOverlayWrapper>
+              <KeyMapOverlay
+                style={{
+                  transform: `scale(${state.settings.previewScale || 1})`,
+                  transition: 'transform 0.2s cubic-bezier(0.22,0.61,0.36,1)',
+                  pointerEvents: 'auto'
+                }}
+              >
+                <div className="numbers-section">
+                  <div className="number-column">
+                    <h3>数字键 0-4</h3>
+                    {Object.entries(currentMode.keyMappings)
+                      .filter(([key]) => ['0', '1', '2', '3', '4'].includes(key))
+                      .sort((a, b) => {
+                        const order = ['0', '1', '2', '3', '4'];
+                        return order.indexOf(a[0]) - order.indexOf(b[0]);
+                      })
+                      .map(([key, config]) => (
+                        <KeyMapItem key={key} highlight={key === state.currentKey}>
+                          <kbd>{key}</kbd>
+                          <span className="title">{config.title}</span>
+                        </KeyMapItem>
+                      ))}
+                  </div>
+                  <div className="number-column">
+                    <h3>数字键 5-9</h3>
+                    {Object.entries(currentMode.keyMappings)
+                      .filter(([key]) => ['5', '6', '7', '8', '9'].includes(key))
+                      .map(([key, config]) => (
+                        <KeyMapItem key={key} highlight={key === state.currentKey}>
+                          <kbd>{key}</kbd>
+                          <span className="title">{config.title}</span>
+                        </KeyMapItem>
+                      ))}
+                  </div>
+                </div>
+
+                <div className="controls-section">
+                  <h3>控制按键</h3>
+                  <KeyMapItem>
+                    <kbd>Enter</kbd>
+                    <span className="title">再次按下取消预览</span>
+                  </KeyMapItem>
+                  <KeyMapItem>
+                    <kbd>+</kbd>
+                    <span className="title">向下滚动</span>
+                  </KeyMapItem>
+                  <KeyMapItem>
+                    <kbd>-</kbd>
+                    <span className="title">向上滚动</span>
+                  </KeyMapItem>
+                  <KeyMapItem>
+                    <kbd>ESC</kbd>
+                    <span className="title">返回主页面</span>
+                  </KeyMapItem>
+                </div>
+              </KeyMapOverlay>
+            </KeyMapOverlayWrapper>
+          )}
+
+          {state.showPrompt && state.currentKey && !state.isFullscreen && (
+            <PromptText style={{ top: '2rem', right: '2rem', left: 'auto', transform: 'none', position: 'fixed', background: 'rgba(74,144,226,0.18)', fontSize: '1rem', zIndex: 1300 }}>
+              <span style={{ fontWeight: 600 }}>{currentMode.keyMappings[state.currentKey]?.title || ''}</span>
+            </PromptText>
+          )}
+
+          {!state.isFullscreen && (
+            <>
+              <Settings
+                defaultFontSize={state.settings.fontSize}
+                defaultTextColor={state.settings.textColor}
+                defaultBackgroundColor={state.settings.backgroundColor}
+                defaultPromptFontSize={state.settings.promptFontSize}
+                defaultLineSpacing={state.settings.lineSpacing}
+                defaultPreviewScale={state.settings.previewScale || 1}
+                onSettingsChange={handleSettingsChange}
+              />
+              <MappingModeManager
+                modes={state.mappingModes}
+                currentModeId={state.currentModeId}
+                onModeSelect={handleModeSelect}
+                onModeAdd={handleModeAdd}
+                onModeUpdate={handleModeUpdate}
+                onModeDelete={handleModeDelete}
+                currentMappings={currentMode.keyMappings}
+              />
+              <QuickEdit
+                keyMappings={currentMode.keyMappings}
+                onUpdate={handleConfigUpdate}
+              />
+            </>
+          )}
+        </MainContent>
+      </AppContainer>
+    </>
   );
 };
 

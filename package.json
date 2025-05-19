@@ -2,7 +2,7 @@
   "name": "teleprompter",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://xiaoshc.github.io/teleprompter",
+  "homepage": "https://xiaoqiangshc.github.io/teleprompter",
   "description": "智能提词器 - 专业的提词工具，支持多种文本预设和快捷键控制",
   "author": {
     "name": "XiaoQiangSHC",
@@ -21,7 +21,8 @@
     "web-vitals": "^2.1.4"
   },
   "devDependencies": {
-    "gh-pages": "^6.3.0"
+    "gh-pages": "^6.3.0",
+    "sharp": "^0.34.1"
   },
   "scripts": {
     "start": "react-scripts start",
